@@ -42,15 +42,22 @@ void calculateField();
 void printScreen();
 
 int main(int argc, char const *argv[]){
-        printf("Hello World!");
+        //printf("Hello World!");
+				printScreen();
         return 0;
 }
 
 void printScreen(){
 	int x,y = 0;
 	for (y = 0; y<HEIGHT; y++){
-		for (x = 0; x<WIDTH; x++){
-
+		printf("H");
+		for (x=0; x<WIDTH; x++) {
+			if(y==0 || y==HEIGHT-1){
+			printf("W");
+		}else{
+			printf(" ");
 		}
 	}
+		printf("H\n");
+}
 }
