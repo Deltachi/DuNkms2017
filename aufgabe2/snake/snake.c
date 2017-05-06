@@ -52,8 +52,10 @@ int main(int argc, char const *argv[]){
 }
 
 void movePlayer(){
+	system("/bin/stty raw");
 	int input = getchar();  //support_readkey(1000);
 	printf("%d",input);
+	system("/bin/stty cooked");
 }
 
 void printScreen(){
