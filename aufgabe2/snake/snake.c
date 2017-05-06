@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include "support.h"
 
 #define KEY_UP 119		//W
@@ -39,10 +40,20 @@ void movePlayer();
 void createItem();
 void calculateField();
 void printScreen();
+void wait(unsigned int seconds);
 
 int main(int argc, char const *argv[]){
         printf("Hello World!");
+        while(1){
+			movePlayer();
+			//wait(1);
+		}
         return 0;
+}
+
+void movePlayer(){
+	int input = support_readkey(1000);
+	printf("%d",input);
 }
 
 void printScreen(){
@@ -52,4 +63,8 @@ void printScreen(){
 			
 		}
 	}
+}
+void wait(unsigned int seconds){
+	unsigned int finished = time(0) + seconds;
+	while (time(0) < finished); //wait
 }
