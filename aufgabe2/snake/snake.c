@@ -16,6 +16,13 @@
 #define HEIGHT 20		//plane size Y
 #define DEBUG 0			//for debugging if-conditions
 
+int field[WIDTH][HEIGHT];
+
+struct position {
+	int x;
+	int y;
+} pos;
+
 void printScreen(){
 	int x,y = 0;
 	for (y = 0; y<HEIGHT; y++){
