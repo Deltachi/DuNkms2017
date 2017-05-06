@@ -54,25 +54,3 @@ void printScreen(){
 		}
 	}
 }
-
-#define BLANK 0
-#define HEAD 1
-#define TAIL 2
-#define FOOD 9
-#define WIDTH 60
-#define HEIGHT 20
-
-struct position {
-  int x;
-  int y;
-} pos;
-
-int field[WIDTH][HEIGHT];
-
-void printField();
-
-int main(int argc, char const *argv[]){
-
-        printf("Hello World!");
-        return 0;
-}
