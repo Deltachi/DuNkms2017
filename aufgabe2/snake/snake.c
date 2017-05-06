@@ -45,20 +45,40 @@ void wait(unsigned int seconds);
 
 int main(int argc, char const *argv[]){
         printf("Hello World!");
+        support_init();
+        int timeNow = (int)time(0);
+        int timePre = timeNow - 1;
         while(1){
-			movePlayer();
-			//wait(1);
+			
+			if (timeNow > timePre){
+				printf("time: %d -> %d\n",timePre,timeNow);
+				timePre = timeNow;
+				timeNow = (int)time(0);
+				movePlayer();
+			}else{
+				timePre = timeNow;
+				timeNow = (int)time(0);
+			}
+			
 		}
         return 0;
 }
 
 void movePlayer(){
-	system("/bin/stty raw");
-	int input = getchar();  //support_readkey(1000);
+	fflush(NULL);
+	//fflush(stdin);
+	//fseek(stdin,0,SEEK_END);
+	
+	//system("/bin/stty raw");
+	int input = support_readkey(1000);
 	//fprintf(stdout, "\033[2J");
 	//fprintf(stdout, "\033[1;1H");
-	printf("\b%d",input);
-	system("/bin/stty cooked");
+	//printf("\b");
+	//system("/bin/stty cooked");
+	printf("%d\n",input);
+	//fflush(stdout);
+	//sleep(1);
+	
 }
 
 void printScreen(){
