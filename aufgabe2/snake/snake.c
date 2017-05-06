@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <support.h>
+
 #define BLANK 0
 #define HEAD 1
 #define TAIL 2
