@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-<<<<<<< HEAD
-#include <support.h>
-=======
+
 #include "support.h"
 
 #define KEY_UP 119		//W
@@ -10,24 +8,52 @@
 #define KEY_DOWN 115	//S
 #define KEY_RIGHT 100	//D
 
+//field filler
 #define BLANK 0			//empty field
 #define HEAD 1			//snake head symbol
 #define TAIL 2			//snake tail symbol
 #define FOOD 9			//food item symbol
-
-#define WIDTH 60		//plane size X
-#define HEIGHT 20		//plane size Y
+//field parameter
+#define WIDTH 60		//field size X
+#define HEIGHT 20		//field size Y
+//etc
 #define DEBUG 0			//for debugging if-conditions
+//direction values
+#define N 0				//north or up
+#define E 1				//east  or right
+#define S 2				//south or down
+#define W 3				//west  or left
+
+int field[WIDTH][HEIGHT];
+
+struct position {
+	int x;
+	int y;
+} pos;
+struct tail_position {
+	int x;
+	int y;
+	int direction;
+} tail_pos;
+
+void movePlayer();
+void createItem();
+void calculateField();
+void printScreen();
+
+int main(int argc, char const *argv[]){
+        printf("Hello World!");
+        return 0;
+}
 
 void printScreen(){
 	int x,y = 0;
 	for (y = 0; y<HEIGHT; y++){
 		for (x = 0; x<WIDTH; x++){
-			
+
 		}
 	}
 }
->>>>>>> delta
 
 #define BLANK 0
 #define HEAD 1
@@ -46,40 +72,7 @@ int field[WIDTH][HEIGHT];
 void printField();
 
 int main(int argc, char const *argv[]){
-<<<<<<< HEAD
-    pos.x=WIDTH/2;
-    pos.y=HEIGHT/2;
 
-    printField();
-};
-
-
-void printField() {
-	//clear screen
-	fprintf(stdout, "\033[2J");
-	fprintf(stdout, "\033[1;1H");
-
-	int i,j,x;
-	for(i=0;i<HEIGHT+2;i++) {
-		printf("\n");
-		printf("|");
-		for(j=0;j<WIDTH;j++) {
-			if(i==0 || i==HEIGHT+1)  {
-				printf("-");
-			}
-			else {
-				x = field[j][i];
-				switch(x) {
-				case BLANK: printf(" "); break;
-				case TAIL: printf("*"); break;
-				case HEAD: printf("O"); break;
-				}
-			}
-		}
-		printf("|");
-  }
-=======
         printf("Hello World!");
         return 0;
 }
->>>>>>> delta
