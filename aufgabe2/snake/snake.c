@@ -36,6 +36,7 @@ struct tail_position {
 	int direction;
 } tail_pos;
 
+
 void movePlayer();
 void createItem();
 void calculateField();
@@ -52,12 +53,11 @@ int main(int argc, char const *argv[]){
 }
 
 void movePlayer(){
-	
 	system("/bin/stty raw");
 	int input = getchar();  //support_readkey(1000);
-	fprintf(stdout, "\033[2J");
-	fprintf(stdout, "\033[1;1H");
-	printf("%d",input);
+	//fprintf(stdout, "\033[2J");
+	//fprintf(stdout, "\033[1;1H");
+	printf("\b%d",input);
 	system("/bin/stty cooked");
 }
 
