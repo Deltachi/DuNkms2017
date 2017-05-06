@@ -52,7 +52,7 @@ int main(int argc, char const *argv[]){
 }
 
 void movePlayer(){
-	int input = support_readkey(1000);
+	int input = getchar();  //support_readkey(1000);
 	printf("%d",input);
 }
 
