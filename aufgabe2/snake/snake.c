@@ -193,7 +193,10 @@ void generateFood(){
 		int y = rand() % (19 + 1 - 2) + 2; //random number for y in tile
 
 		if (field[x][y] == BLANK) {
-			setTile(x,y,FOOD);							//print FOOD item symbol if field is BLANK
+			while (1) {
+			setTile(x,y,FOOD);
+			break;
+		}							//print FOOD item symbol if field is BLANK
 		}else{
 			generateFood();									//else repeat generateFood
 		}
