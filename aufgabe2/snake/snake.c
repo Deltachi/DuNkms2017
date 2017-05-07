@@ -41,16 +41,16 @@ struct position {
 struct position tail_pos;
 
 //first declaration of methods
-void gameInit();
-int getPlayerDirection();
-void moveX(int step);
-void moveY(int step);
-void movePlayer();
-void nextTailpiece();
-void moveTail();
-void createItem();
-void gamePhysics();
-void renderFrame();
+void gameInit();									//libraries and player coordinates 
+int getPlayerDirection();							//converts player input to value (0-4)
+void moveX(struct position* p_pos, int step);		//calculates new coordinates for given struct (boundary-safe)(horizontally)
+void moveY(struct position* p_pos, int step);		//same but different but still same! (vertically)
+void movePlayer();									//parent function that coordinates getPlayerDirection, moveX, moveY
+void nextTailpiece();								//searches surrounding tiles for a tail-object
+void moveTail();									//handler to shorten the tail (normal movement) or keeping the position (food intake)
+void createItem();									//sets a tile of the field to a given value (HEAD,TAIL,FOOD,EMPTY)
+void gamePhysics();									//handler for all methods mentioned above
+void renderFrame();									//prints the game
 
 int main(int argc, char const *argv[]){
 	gameInit();
@@ -110,52 +110,52 @@ int getPlayerDirection(){
 	if (DEBUG){printf("KEY: %s (%d)\n",direction_str,direction);}	//DEBUGGING
 	return direction;	
 }
-void moveX(int step){
+void moveX(struct position* p_pos, int step){
 	if (step > 0){
-		pos.x = (pos.x + 1) % WIDTH;
+		p_pos->x = (p_pos->x + 1) % WIDTH;
 	}else{
-		if (pos.x - 1 < 0){
-			pos.x = HEIGHT;
+		if (p_pos->x - 1 < 0){
+			p_pos->x = HEIGHT;
 		}else{
-			pos.x--;
+			p_pos->x--;
 		}
 	}
 }
-void moveY( int step){
+void moveY(struct position* p_pos, int step){
 	if (step > 0){
-		pos.y = (pos.y + 1) % HEIGHT;
+		p_pos->y = (p_pos->y + 1) % HEIGHT;
 	}else{
-		if (pos.y - 1 < 0){
-			pos.y = HEIGHT;
+		if (p_pos->y - 1 < 0){
+			p_pos->y = HEIGHT;
 		}else{
-			pos.y--;
+			p_pos->y--;
 		}
 	}
 }
-void movePlayer(){
+void movePlayer(struct position* p_pos){					
 	int player_direction = getPlayerDirection();			//return 0-4 (idle, N,E,S,W)
 	if (!MOMENTUM || player_direction){						//if not idle (to maintain momentum)
-		pos.direction = player_direction;
+		p_pos->direction = player_direction;
 	}
-	field[pos.x][pos.y] = TAIL;								//set current HEAD position to TAIL rendering	
-	switch(pos.direction){
+	field[p_pos->x][p_pos->y] = TAIL;						//set current HEAD position to TAIL rendering	
+	switch(p_pos->direction){
 		case NORTH:
-			moveY(-1);
+			moveY(p_pos,-1);
 			break;
 		case EAST:
-			moveX(1);
+			moveX(p_pos,1);
 			break;
 		case SOUTH:
-			moveY(1);
+			moveY(p_pos,1);
 			break;
 		case WEST:
-			moveX(-1);
+			moveX(p_pos,-1);
 			break;
 		default:
 			break;
 	}
-	field[pos.x][pos.y] = HEAD;	
-	if (DEBUG){printf("Player position [%d][%d]\n",pos.x,pos.y);}		//DEBUGGING
+	field[p_pos->x][p_pos->y] = HEAD;	
+	if (DEBUG){printf("Player position [%d][%d]\n",p_pos->x,p_pos->y);}		//DEBUGGING
 }
 void nextTailpiece(){
 	
@@ -167,7 +167,9 @@ void createItem(){
 	
 }
 void gamePhysics(){
-	movePlayer();
+	struct position* p_pos = &pos;
+	//printf("pos pointer: %p | X,Y = [%d,%d]\n",p_pos,p_pos->x,p_pos->y);
+	movePlayer(p_pos);
 	moveTail();
 	createItem();
 }
