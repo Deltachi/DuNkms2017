@@ -37,7 +37,7 @@ struct position {
 	int x;
 	int y;
 	int direction;
-} pos;
+} head_pos;
 
 //location of the tail end 
 struct position tail_pos;
@@ -74,9 +74,9 @@ void gameInit(){
 	printf("C Snake!\n");
 	support_init();
 	//player_init
-	pos.x=WIDTH/2;
-	pos.y=HEIGHT/2;
-	pos.direction = IDLE;
+	head_pos.x=WIDTH/2;
+	head_pos.y=HEIGHT/2;
+	head_pos.direction = IDLE;
 }
 int getPlayerDirection(){
 	//system("/bin/stty raw");						//hacky way to avoid newline key to toggle getchar()
@@ -173,7 +173,7 @@ void generateFood(){
 	
 }
 void gamePhysics(){
-	struct position* p_pos = &pos;
+	struct position* p_pos = &head_pos;
 	movePlayer(p_pos);
 	moveTail();
 	generateFood();
