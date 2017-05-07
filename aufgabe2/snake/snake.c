@@ -27,18 +27,21 @@
 #define SOUTH 3				//south or down
 #define WEST 4				//west  or left
 
+//play field
 int field[WIDTH][HEIGHT];
 
+//player head position and direction
 struct position {
 	int x;
 	int y;
 	int direction;
 } pos;
 
-//redundant at the moment but may change in the near future
+//location of the tail end 
 struct position tail_pos;
 
 //first declaration of methods
+void gameInit();
 int getPlayerDirection();
 void moveX(int step);
 void moveY(int step);
@@ -47,34 +50,30 @@ void nextTailpiece();
 void moveTail();
 void createItem();
 void gamePhysics();
-void printScreen();
+void renderFrame();
 
 int main(int argc, char const *argv[]){
-	printf("Hello World!\n");
-	support_init();
-	
-	//player_init
-	pos.x=WIDTH/2;
-	pos.y=HEIGHT/2;
-	pos.direction = IDLE;
-	
+	gameInit();
 	int timeNow = (int)time(0);					//initial timestamp
 	int timePre = timeNow - 1;						//go back 1 sec to avoid delay at start
 	while(1){
 		while(support_readkey(1) != 0); 			//empty the input buffer if key is helt down
 		if (timeNow > timePre){						//if timeDelta is > 0 sec aka >= 1 sec bc integer value of time
-			if (DEBUG > 1){printf("time: %d -> %d\n",timePre,timeNow);}	//DEBUGGING TIER 2
-			timePre = timeNow;						//early timestamp reset
-			timeNow = (int)time(0);					//
-			movePlayer();							//calculate player motion
-			timePre = timeNow;						//late timestamp reset
-			timeNow = (int)time(0);					//
-		}else{
-			timePre = timeNow;						//reset timestamps
-			timeNow = (int)time(0);					//
-		}	
+			gamePhysics();							//calculate player motion, etc.
+			renderFrame();
+		}
+		timePre = timeNow;							//timestamp reset
+		timeNow = (int)time(0);						//	
 	}
 	return 0;
+}
+void gameInit(){
+	printf("C Snake!\n");
+	support_init();
+	//player_init
+	pos.x=WIDTH/2;
+	pos.y=HEIGHT/2;
+	pos.direction = IDLE;
 }
 int getPlayerDirection(){
 	//system("/bin/stty raw");						//hacky way to avoid newline key to toggle getchar()
@@ -138,11 +137,7 @@ void movePlayer(){
 	if (!MOMENTUM || player_direction){						//if not idle (to maintain momentum)
 		pos.direction = player_direction;
 	}
-	field[pos.x][pos.y] = TAIL;								//set current HEAD position to TAIL rendering
-	
-	tail_pos.x = pos.x;
-	tail_pos.y = pos.y;
-	
+	field[pos.x][pos.y] = TAIL;								//set current HEAD position to TAIL rendering	
 	switch(pos.direction){
 		case NORTH:
 			moveY(-1);
@@ -168,15 +163,15 @@ void nextTailpiece(){
 void moveTail(){
 	
 }
+void createItem(){
+	
+}
 void gamePhysics(){
 	movePlayer();
 	moveTail();
 	createItem();
 }
-void createItem(){
-	
-	}
-void printScreen(){
+void renderFrame(){
 	int x,y = 0;
 	for (y = 0; y<HEIGHT; y++){
 		for (x = 0; x<WIDTH; x++){
