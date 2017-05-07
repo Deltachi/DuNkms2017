@@ -7,6 +7,8 @@
 #define KEY_LEFT 97			//A
 #define KEY_DOWN 115		//S
 #define KEY_RIGHT 100		//D
+#define KEY_QUIT 113		//Q
+#define KEY_SPACE 32		//SPACE KEY
 
 //item list
 #define BLANK 0				//empty field
@@ -108,7 +110,7 @@ int getPlayerDirection(){
 			direction = IDLE;
 			break;
 	}
-	if (DEBUG){printf("KEY: %s (%d)\n",direction_str,direction);}	//DEBUGGING
+	if (DEBUG){printf("KEY:[%d] %s (%d)\n",input,direction_str,direction);}	//DEBUGGING
 	return direction;	
 }
 void moveX(struct position* p_pos, int step){
