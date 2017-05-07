@@ -21,6 +21,7 @@
 #define HEIGHT 20			//field size Y
 //game parameter
 #define MOMENTUM 1			//1 = keeps the player moving (0 = player stops when no key is pressed)
+#define FOOD_GEN_RATE 6		//1 = 100% every frame  e.g. 10 = 1/10 -> 10% per frame
 //etc
 #define DEBUG 1				//for debugging if-conditions
 //direction values
@@ -60,21 +61,23 @@ void renderFrame();									//prints the game
 
 int main(int argc, char const *argv[]){
 	gameInit();
+	char* user_start = getchar();
 	int timeNow = (int)time(0);					//initial timestamp
 	int timePre = timeNow - 1;						//go back 1 sec to avoid delay at start
-	while(1){
+	while(collision_detected != TAIL){
 		while(support_readkey(1) != 0); 			//empty the input buffer if key is helt down
 		if (timeNow > timePre){						//if timeDelta is > 0 sec aka >= 1 sec bc integer value of time
 			gamePhysics();							//calculate player motion, etc.
-			renderFrame();
+			renderFrame();							//renders frame
 		}
 		timePre = timeNow;							//timestamp reset
 		timeNow = (int)time(0);						//	
 	}
+	printf("\n=====================\n|||   GAME OVER   |||\n=====================\n");
 	return 0;
 }
 void gameInit(){
-	printf("C Snake!\n");
+	printf("C Snake!\nPress Return to start!\n");
 	support_init();
 	srand(time(NULL));
 	//player_init
@@ -207,7 +210,7 @@ void setTile(int x, int y, int item){
 	field[x][y] = item;
 }
 void generateFood(){
-	int t = rand() % (10 + 1 - 1) + 1;
+	int t = rand() % (FOOD_GEN_RATE + 1 - 1) + 1;
 
 	if(t == 1){
 		while(1){
