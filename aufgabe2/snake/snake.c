@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-
 #include <time.h>
-
 #include "support.h"
 
 #define KEY_UP 119			//W
@@ -14,6 +12,7 @@
 
 //item list
 #define BLANK 0				//empty field
+#define EMPTY 0				//empty field
 #define HEAD 1				//snake head symbol
 #define TAIL 2				//snake tail symbol
 #define FOOD 3				//food item symbol
@@ -44,6 +43,8 @@ struct position {
 //location of the tail end
 struct position tail_pos;
 
+int collision_detected = 0;
+
 //first declaration of methods
 void gameInit();									//libraries and player coordinates
 int getPlayerDirection();							//converts player input to value (0-4)
@@ -58,12 +59,6 @@ void gamePhysics();									//handler for all methods mentioned above
 void renderFrame();									//prints the game
 
 int main(int argc, char const *argv[]){
-
-        //printf("Hello World!");
-				//renderFrame();
-				//generateFood();
-        //return 0;
-	srand(time(NULL));
 	gameInit();
 	int timeNow = (int)time(0);					//initial timestamp
 	int timePre = timeNow - 1;						//go back 1 sec to avoid delay at start
@@ -72,21 +67,25 @@ int main(int argc, char const *argv[]){
 		if (timeNow > timePre){						//if timeDelta is > 0 sec aka >= 1 sec bc integer value of time
 			gamePhysics();							//calculate player motion, etc.
 			renderFrame();
-			generateFood();
 		}
 		timePre = timeNow;							//timestamp reset
 		timeNow = (int)time(0);						//
 	}
 	return 0;
-
 }
 void gameInit(){
 	printf("C Snake!\n");
 	support_init();
+	srand(time(NULL));
 	//player_init
+	setTile(WIDTH/2,HEIGHT/2,HEAD);
 	head_pos.x=WIDTH/2;
 	head_pos.y=HEIGHT/2;
-	head_pos.direction = IDLE;
+	head_pos.direction = NORTH;
+	setTile(WIDTH/2,HEIGHT/2 + 1,TAIL);
+	setTile(WIDTH/2,HEIGHT/2 + 2,TAIL);
+	tail_pos.x = WIDTH/2;
+	tail_pos.y = HEIGHT/2 + 2;
 }
 int getPlayerDirection(){
 	//system("/bin/stty raw");						//hacky way to avoid newline key to toggle getchar()
@@ -125,10 +124,14 @@ int getPlayerDirection(){
 }
 void moveX(struct position* p_pos, int step){
 	if (step > 0){
-		p_pos->x = (p_pos->x + 1) % WIDTH;
+		if (p_pos->x + 1 > WIDTH-2){
+			p_pos->x = 1;
+		}else{
+			p_pos->x++;
+		}
 	}else{
-		if (p_pos->x - 1 < 0){
-			p_pos->x = WIDTH;
+		if (p_pos->x - 1 < 1){
+			p_pos->x = WIDTH-2;
 		}else{
 			p_pos->x--;
 		}
@@ -136,10 +139,14 @@ void moveX(struct position* p_pos, int step){
 }
 void moveY(struct position* p_pos, int step){
 	if (step > 0){
-		p_pos->y = (p_pos->y + 1) % HEIGHT;
+		if (p_pos->y + 1 > HEIGHT-2){
+			p_pos->y = 1;
+		}else{
+			p_pos->y++;
+		}
 	}else{
-		if (p_pos->y - 1 < 0){
-			p_pos->y = HEIGHT;
+		if (p_pos->y - 1 < 1){
+			p_pos->y = HEIGHT-2;
 		}else{
 			p_pos->y--;
 		}
@@ -150,7 +157,7 @@ void movePlayer(struct position* p_pos){
 	if (!MOMENTUM || player_direction){						//if not idle (to maintain momentum)
 		p_pos->direction = player_direction;
 	}
-	setTile(p_pos->x,p_pos->y,TAIL);							//set current HEAD position to TAIL rendering
+	setTile(p_pos->x,p_pos->y,TAIL);						//set current HEAD position to TAIL rendering
 	switch(p_pos->direction){
 		case NORTH:
 			moveY(p_pos,-1);
@@ -167,45 +174,53 @@ void movePlayer(struct position* p_pos){
 		default:
 			break;
 	}
+
+	collision_detected = field[p_pos->x][p_pos->y];			//safe tile that is about to be overwritten as collision object
+
 	setTile(p_pos->x,p_pos->y,HEAD);
-	if (DEBUG){printf("Player position [%d][%d]\n",p_pos->x,p_pos->y);}		//DEBUGGING
+	if (DEBUG){printf("Player position [%d][%d]\nCollision detector: %d\n",p_pos->x,p_pos->y,collision_detected);}		//DEBUGGING
 }
-
-
-
-
 void nextTailpiece(struct position* t_pos){
-
+	if (field[t_pos->x +1][t_pos->y] == TAIL){
+		t_pos->x = t_pos->x + 1;
+	}else{
+		if (field[t_pos->x -1][t_pos->y] == TAIL){
+			t_pos->x = t_pos->x - 1;
+		}else{
+			if (field[t_pos->x][t_pos->y +1] == TAIL){
+				t_pos->y = t_pos->y + 1;
+			}else{
+				if (field[t_pos->x][t_pos->y -1] == TAIL){
+					t_pos->y = t_pos->y - 1;
+				}
+			}
+		}
+	}
 }
 void moveTail(struct position* t_pos){
-
-
+	if (collision_detected == BLANK){
+		setTile(t_pos->x,t_pos->y,BLANK);
+		nextTailpiece(t_pos);
+	}
 }
 void setTile(int x, int y, int item){
 	field[x][y] = item;
 }
-
 void generateFood(){
-	int t = rand() % (30 + 1 - 1) + 1;
+	int t = rand() % (10 + 1 - 1) + 1;
 
 	if(t == 1){
-		int x = rand() % (59 + 1 - 2) + 2; //random number for x in tile
-		int y = rand() % (19 + 1 - 2) + 2; //random number for y in tile
+		while(1){
+			int x = rand() % (59 + 1 - 2) + 2; //random number for x in tile
+			int y = rand() % (19 + 1 - 2) + 2; //random number for y in tile
 
-		if (field[x][y] == BLANK) {
-			while (1) {
-			setTile(x,y,FOOD);
-			break;
-		}							//print FOOD item symbol if field is BLANK
-		}else{
-			generateFood();									//else repeat generateFood
+			if (field[x][y] == BLANK) {
+				setTile(x,y,FOOD);								//set FOOD item symbol if field is BLANK
+				break;
+			}
 		}
-	}//else{
-	//generateFood();
-//}
+	}
 }
-
-
 void gamePhysics(){
 	struct position* h_pos = &head_pos;
 	struct position* t_pos = &tail_pos;
@@ -219,18 +234,27 @@ void renderFrame(){
 		printf("H");
 		for (x=0; x<WIDTH; x++) {
 			if(y==0 || y==HEIGHT-1){
-
 				printf("W");
 			}else{
-				if (field[x][y] == BLANK){
+				switch(field[x][y]){
+				case BLANK:
 					printf(" ");
-				}else{
-					printf("%d",field[x][y]);
+					break;
+				/**case EMPTY:
+					printf(" ");
+					break;**/
+				case HEAD:
+					printf("Ω");
+					break;
+				case TAIL:
+					printf("¥");
+					break;
+				case FOOD:
+					printf("€");
+					break;
 				}
 			}
-
 		}
 		printf("H\n");
 	}
-		printf("H\n");
 }
