@@ -3,84 +3,179 @@
 #include <time.h>
 #include "support.h"
 
-#define KEY_UP 119		//W
-#define KEY_LEFT 97		//A
-#define KEY_DOWN 115	//S
-#define KEY_RIGHT 100	//D
+#define KEY_UP 119			//W
+#define KEY_LEFT 97			//A
+#define KEY_DOWN 115		//S
+#define KEY_RIGHT 100		//D
 
 //field filler
-#define BLANK 0			//empty field
-#define HEAD 1			//snake head symbol
-#define TAIL 2			//snake tail symbol
-#define FOOD 9			//food item symbol
+#define BLANK 0				//empty field
+#define HEAD 1				//snake head symbol
+#define TAIL 2				//snake tail symbol
+#define FOOD 9				//food item symbol
 //field parameter
-#define WIDTH 60		//field size X
-#define HEIGHT 20		//field size Y
+#define WIDTH 60			//field size X
+#define HEIGHT 20			//field size Y
+//game parameter
+#define MOMENTUM 1			//1 = keeps the player moving (0 = player stops when no key is pressed)
 //etc
-#define DEBUG 0			//for debugging if-conditions
+#define DEBUG 1				//for debugging if-conditions
 //direction values
-#define N 0				//north or up
-#define E 1				//east  or right
-#define S 2				//south or down
-#define W 3				//west  or left
+#define IDLE 0
+#define NORTH 1				//north or up
+#define EAST 2				//east  or right
+#define SOUTH 3				//south or down
+#define WEST 4				//west  or left
 
 int field[WIDTH][HEIGHT];
 
 struct position {
 	int x;
 	int y;
-} pos;
-struct tail_position {
-	int x;
-	int y;
 	int direction;
-} tail_pos;
+} pos;
 
+//redundant at the moment but may change in the near future
+struct position tail_pos;
 
+//first declaration of methods
+int getPlayerDirection();
+void moveX(int step);
+void moveY(int step);
 void movePlayer();
+void nextTailpiece();
+void moveTail();
 void createItem();
-void calculateField();
+void gamePhysics();
 void printScreen();
-void wait(unsigned int seconds);
 
 int main(int argc, char const *argv[]){
-        printf("Hello World!");
-        support_init();
-        int timeNow = (int)time(0);
-        int timePre = timeNow - 1;
-        while(1){
-			
-			if (timeNow > timePre){
-				printf("time: %d -> %d\n",timePre,timeNow);
-				timePre = timeNow;
-				timeNow = (int)time(0);
-				movePlayer();
-			}else{
-				timePre = timeNow;
-				timeNow = (int)time(0);
-			}
-			
+	printf("Hello World!\n");
+	support_init();
+	
+	//player_init
+	pos.x=WIDTH/2;
+	pos.y=HEIGHT/2;
+	pos.direction = IDLE;
+	
+	int timeNow = (int)time(0);					//initial timestamp
+	int timePre = timeNow - 1;						//go back 1 sec to avoid delay at start
+	while(1){
+		while(support_readkey(1) != 0); 			//empty the input buffer if key is helt down
+		if (timeNow > timePre){						//if timeDelta is > 0 sec aka >= 1 sec bc integer value of time
+			if (DEBUG > 1){printf("time: %d -> %d\n",timePre,timeNow);}	//DEBUGGING TIER 2
+			timePre = timeNow;						//early timestamp reset
+			timeNow = (int)time(0);					//
+			movePlayer();							//calculate player motion
+			timePre = timeNow;						//late timestamp reset
+			timeNow = (int)time(0);					//
+		}else{
+			timePre = timeNow;						//reset timestamps
+			timeNow = (int)time(0);					//
+		}	
+	}
+	return 0;
+}
+int getPlayerDirection(){
+	//system("/bin/stty raw");						//hacky way to avoid newline key to toggle getchar()
+	int input = support_readkey(500);				//Read char from input, with max 500 ms delay	
+	//system("/bin/stty cooked");					//disable hackysack
+	char* direction_str;							//for debugging purposes
+	int direction;									//return variable
+	switch(input){
+		case 0:
+			direction_str = "nothing";
+			direction = IDLE;
+			break;
+		case KEY_UP:
+			direction_str = "up";
+			direction = NORTH;
+			break;
+		case KEY_LEFT:
+			direction_str = "left";
+			direction = WEST;
+			break;
+		case KEY_DOWN:
+			direction_str = "down";
+			direction = SOUTH;
+			break;
+		case KEY_RIGHT:
+			direction_str = "right";
+			direction = EAST;
+			break;
+		default:
+			direction_str = "wrong key";
+			direction = IDLE;
+			break;
+	}
+	if (DEBUG){printf("KEY: %s (%d)\n",direction_str,direction);}	//DEBUGGING
+	return direction;	
+}
+void moveX(int step){
+	if (step > 0){
+		pos.x = (pos.x + 1) % WIDTH;
+	}else{
+		if (pos.x - 1 < 0){
+			pos.x = HEIGHT;
+		}else{
+			pos.x--;
 		}
-        return 0;
+	}
 }
-
+void moveY( int step){
+	if (step > 0){
+		pos.y = (pos.y + 1) % HEIGHT;
+	}else{
+		if (pos.y - 1 < 0){
+			pos.y = HEIGHT;
+		}else{
+			pos.y--;
+		}
+	}
+}
 void movePlayer(){
-	fflush(NULL);
-	//fflush(stdin);
-	//fseek(stdin,0,SEEK_END);
+	int player_direction = getPlayerDirection();			//return 0-4 (idle, N,E,S,W)
+	if (!MOMENTUM || player_direction){						//if not idle (to maintain momentum)
+		pos.direction = player_direction;
+	}
+	field[pos.x][pos.y] = TAIL;								//set current HEAD position to TAIL rendering
 	
-	//system("/bin/stty raw");
-	int input = support_readkey(1000);
-	//fprintf(stdout, "\033[2J");
-	//fprintf(stdout, "\033[1;1H");
-	//printf("\b");
-	//system("/bin/stty cooked");
-	printf("%d\n",input);
-	//fflush(stdout);
-	//sleep(1);
+	tail_pos.x = pos.x;
+	tail_pos.y = pos.y;
+	
+	switch(pos.direction){
+		case NORTH:
+			moveY(-1);
+			break;
+		case EAST:
+			moveX(1);
+			break;
+		case SOUTH:
+			moveY(1);
+			break;
+		case WEST:
+			moveX(-1);
+			break;
+		default:
+			break;
+	}
+	field[pos.x][pos.y] = HEAD;	
+	if (DEBUG){printf("Player position [%d][%d]\n",pos.x,pos.y);}		//DEBUGGING
+}
+void nextTailpiece(){
 	
 }
-
+void moveTail(){
+	
+}
+void gamePhysics(){
+	movePlayer();
+	moveTail();
+	createItem();
+}
+void createItem(){
+	
+	}
 void printScreen(){
 	int x,y = 0;
 	for (y = 0; y<HEIGHT; y++){
@@ -88,8 +183,4 @@ void printScreen(){
 			
 		}
 	}
-}
-void wait(unsigned int seconds){
-	unsigned int finished = time(0) + seconds;
-	while (time(0) < finished); //wait
 }
