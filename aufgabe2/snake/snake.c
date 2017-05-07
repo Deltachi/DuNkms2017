@@ -47,9 +47,9 @@ void gameInit();									//libraries and player coordinates
 int getPlayerDirection();							//converts player input to value (0-4)
 void moveX(struct position* p_pos, int step);		//calculates new coordinates for given struct (boundary-safe)(horizontally)
 void moveY(struct position* p_pos, int step);		//same but different but still same! (vertically)
-void movePlayer();									//parent function that coordinates getPlayerDirection, moveX, moveY
-void nextTailpiece();								//searches surrounding tiles for a tail-object
-void moveTail();									//handler to shorten the tail (normal movement) or keeping the position (food intake)
+void movePlayer(struct position* p_pos);			//parent function that coordinates getPlayerDirection, moveX, moveY
+void nextTailpiece(struct position* t_pos);		//searches surrounding tiles for a tail-object
+void moveTail(struct position* t_pos);			//handler to shorten the tail (normal movement) or keeping the position (food intake)
 void setTile(int x, int y, int item);				//sets a tile of the field to a given value (HEAD,TAIL,FOOD,EMPTY)
 void generateFood();
 void gamePhysics();									//handler for all methods mentioned above
@@ -160,10 +160,10 @@ void movePlayer(struct position* p_pos){
 	setTile(p_pos->x,p_pos->y,HEAD);	
 	if (DEBUG){printf("Player position [%d][%d]\n",p_pos->x,p_pos->y);}		//DEBUGGING
 }
-void nextTailpiece(){
+void nextTailpiece(struct position* t_pos){
 	
 }
-void moveTail(){
+void moveTail(struct position* t_pos){
 	
 }
 void setTile(int x, int y, int item){
@@ -173,16 +173,27 @@ void generateFood(){
 	
 }
 void gamePhysics(){
-	struct position* p_pos = &head_pos;
-	movePlayer(p_pos);
-	moveTail();
+	struct position* h_pos = &head_pos;
+	struct position* t_pos = &tail_pos;
+	movePlayer(h_pos);
+	moveTail(t_pos);
 	generateFood();
 }
 void renderFrame(){
 	int x,y = 0;
 	for (y = 0; y<HEIGHT; y++){
-		for (x = 0; x<WIDTH; x++){
-			
+		printf("H");
+		for (x=0; x<WIDTH; x++) {
+			if(y==0 || y==HEIGHT-1){
+				printf("W");
+			}else{
+				if (field[x][y] == BLANK){
+					printf(" ");
+				}else{
+					printf("%d",field[x][y]);
+				}
+			}
 		}
+		printf("H\n");
 	}
 }
