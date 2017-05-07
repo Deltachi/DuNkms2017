@@ -49,9 +49,9 @@ void gameInit();									//libraries and player coordinates
 int getPlayerDirection();							//converts player input to value (0-4)
 void moveX(struct position* p_pos, int step);		//calculates new coordinates for given struct (boundary-safe)(horizontally)
 void moveY(struct position* p_pos, int step);		//same but different but still same! (vertically)
-void movePlayer();									//parent function that coordinates getPlayerDirection, moveX, moveY
-void nextTailpiece();								//searches surrounding tiles for a tail-object
-void moveTail();									//handler to shorten the tail (normal movement) or keeping the position (food intake)
+void movePlayer(struct position* p_pos);			//parent function that coordinates getPlayerDirection, moveX, moveY
+void nextTailpiece(struct position* t_pos);		//searches surrounding tiles for a tail-object
+void moveTail(struct position* t_pos);			//handler to shorten the tail (normal movement) or keeping the position (food intake)
 void setTile(int x, int y, int item);				//sets a tile of the field to a given value (HEAD,TAIL,FOOD,EMPTY)
 void generateFood();
 void gamePhysics();									//handler for all methods mentioned above
@@ -60,10 +60,10 @@ void renderFrame();									//prints the game
 int main(int argc, char const *argv[]){
 
         //printf("Hello World!");
-				renderFrame();
-				generateFood();
+				//renderFrame();
+				//generateFood();
         //return 0;
-
+	srand(time(NULL));
 	gameInit();
 	int timeNow = (int)time(0);					//initial timestamp
 	int timePre = timeNow - 1;						//go back 1 sec to avoid delay at start
@@ -72,6 +72,7 @@ int main(int argc, char const *argv[]){
 		if (timeNow > timePre){						//if timeDelta is > 0 sec aka >= 1 sec bc integer value of time
 			gamePhysics();							//calculate player motion, etc.
 			renderFrame();
+			generateFood();
 		}
 		timePre = timeNow;							//timestamp reset
 		timeNow = (int)time(0);						//
@@ -169,24 +170,44 @@ void movePlayer(struct position* p_pos){
 	setTile(p_pos->x,p_pos->y,HEAD);
 	if (DEBUG){printf("Player position [%d][%d]\n",p_pos->x,p_pos->y);}		//DEBUGGING
 }
-void nextTailpiece(){
+
+
+
+
+void nextTailpiece(struct position* t_pos){
 
 }
-void moveTail(){
+void moveTail(struct position* t_pos){
+
 
 }
 void setTile(int x, int y, int item){
 	field[x][y] = item;
 }
+
 void generateFood(){
-	
+	int t = rand() % (30 + 1 - 1) + 1;
+
+	if(t == 1){
+		int x = rand() % (59 + 1 - 2) + 2; //random number for x in tile
+		int y = rand() % (19 + 1 - 2) + 2; //random number for y in tile
+
+		if (field[x][y] == BLANK) {
+			setTile(x,y,FOOD);							//print FOOD item symbol if field is BLANK
+		}else{
+			generateFood();									//else repeat generateFood
+		}
+	}//else{
+	//generateFood();
+//}
 }
 
 
 void gamePhysics(){
-	struct position* p_pos = &head_pos;
-	movePlayer(p_pos);
-	moveTail();
+	struct position* h_pos = &head_pos;
+	struct position* t_pos = &tail_pos;
+	movePlayer(h_pos);
+	moveTail(t_pos);
 	generateFood();
 }
 void renderFrame(){
@@ -195,11 +216,18 @@ void renderFrame(){
 		printf("H");
 		for (x=0; x<WIDTH; x++) {
 			if(y==0 || y==HEIGHT-1){
-			printf("W");
-		}else{
-			printf(" ");
+
+				printf("W");
+			}else{
+				if (field[x][y] == BLANK){
+					printf(" ");
+				}else{
+					printf("%d",field[x][y]);
+				}
+			}
+
 		}
+		printf("H\n");
 	}
 		printf("H\n");
-}
 }

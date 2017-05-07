@@ -12,4 +12,3 @@ snake.o: snake.c support.h
 clean:
 	rm -f snake
 	rm -f snake.o support.o
-
