@@ -115,10 +115,14 @@ int getPlayerDirection(){
 }
 void moveX(struct position* p_pos, int step){
 	if (step > 0){
-		p_pos->x = (p_pos->x + 1) % WIDTH;
+		if (p_pos->x + 1 > WIDTH-2){
+			p_pos->x = 1;
+		}else{
+			p_pos->x++;
+		}
 	}else{
-		if (p_pos->x - 1 < 0){
-			p_pos->x = WIDTH;
+		if (p_pos->x - 1 < 1){
+			p_pos->x = WIDTH-2;
 		}else{
 			p_pos->x--;
 		}
@@ -126,10 +130,14 @@ void moveX(struct position* p_pos, int step){
 }
 void moveY(struct position* p_pos, int step){
 	if (step > 0){
-		p_pos->y = (p_pos->y + 1) % HEIGHT;
+		if (p_pos->y + 1 > HEIGHT-2){
+			p_pos->y = 1;
+		}else{
+			p_pos->y++;
+		}
 	}else{
-		if (p_pos->y - 1 < 0){
-			p_pos->y = HEIGHT;
+		if (p_pos->y - 1 < 1){
+			p_pos->y = HEIGHT-2;
 		}else{
 			p_pos->y--;
 		}
