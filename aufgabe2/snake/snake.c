@@ -12,6 +12,7 @@
 
 //item list
 #define BLANK 0				//empty field
+#define EMPTY 0				//empty field
 #define HEAD 1				//snake head symbol
 #define TAIL 2				//snake tail symbol
 #define FOOD 3				//food item symbol
@@ -41,6 +42,8 @@ struct position {
 
 //location of the tail end 
 struct position tail_pos;
+
+int collision_detected = 0;
 
 //first declaration of methods
 void gameInit();									//libraries and player coordinates 
@@ -73,10 +76,16 @@ int main(int argc, char const *argv[]){
 void gameInit(){
 	printf("C Snake!\n");
 	support_init();
+	srand(time(NULL));
 	//player_init
+	setTile(WIDTH/2,HEIGHT/2,HEAD);
 	head_pos.x=WIDTH/2;
 	head_pos.y=HEIGHT/2;
-	head_pos.direction = IDLE;
+	head_pos.direction = NORTH;
+	setTile(WIDTH/2,HEIGHT/2 + 1,TAIL);
+	setTile(WIDTH/2,HEIGHT/2 + 2,TAIL);
+	tail_pos.x = WIDTH/2;
+	tail_pos.y = HEIGHT/2 + 2;
 }
 int getPlayerDirection(){
 	//system("/bin/stty raw");						//hacky way to avoid newline key to toggle getchar()
@@ -148,7 +157,7 @@ void movePlayer(struct position* p_pos){
 	if (!MOMENTUM || player_direction){						//if not idle (to maintain momentum)
 		p_pos->direction = player_direction;
 	}
-	setTile(p_pos->x,p_pos->y,TAIL);							//set current HEAD position to TAIL rendering	
+	setTile(p_pos->x,p_pos->y,TAIL);						//set current HEAD position to TAIL rendering	
 	switch(p_pos->direction){
 		case NORTH:
 			moveY(p_pos,-1);
@@ -165,20 +174,52 @@ void movePlayer(struct position* p_pos){
 		default:
 			break;
 	}
+
+	collision_detected = field[p_pos->x][p_pos->y];			//safe tile that is about to be overwritten as collision object
+	
 	setTile(p_pos->x,p_pos->y,HEAD);	
-	if (DEBUG){printf("Player position [%d][%d]\n",p_pos->x,p_pos->y);}		//DEBUGGING
+	if (DEBUG){printf("Player position [%d][%d]\nCollision detector: %d\n",p_pos->x,p_pos->y,collision_detected);}		//DEBUGGING
 }
 void nextTailpiece(struct position* t_pos){
-	
+	if (field[t_pos->x +1][t_pos->y] == TAIL){
+		t_pos->x = t_pos->x + 1;
+	}else{
+		if (field[t_pos->x -1][t_pos->y] == TAIL){
+			t_pos->x = t_pos->x - 1;
+		}else{
+			if (field[t_pos->x][t_pos->y +1] == TAIL){
+				t_pos->y = t_pos->y + 1;
+			}else{
+				if (field[t_pos->x][t_pos->y -1] == TAIL){
+					t_pos->y = t_pos->y - 1;
+				}
+			}
+		}
+	}
 }
 void moveTail(struct position* t_pos){
-	
+	if (collision_detected == BLANK){
+		setTile(t_pos->x,t_pos->y,BLANK);
+		nextTailpiece(t_pos);
+	}
 }
 void setTile(int x, int y, int item){
 	field[x][y] = item;
 }
 void generateFood(){
-	
+	int t = rand() % (10 + 1 - 1) + 1;
+
+	if(t == 1){
+		while(1){
+			int x = rand() % (59 + 1 - 2) + 2; //random number for x in tile
+			int y = rand() % (19 + 1 - 2) + 2; //random number for y in tile
+
+			if (field[x][y] == BLANK) {
+				setTile(x,y,FOOD);								//set FOOD item symbol if field is BLANK
+				break;
+			}
+		}
+	}
 }
 void gamePhysics(){
 	struct position* h_pos = &head_pos;
