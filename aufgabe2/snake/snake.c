@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <sys/time.h>
 #include "support.h"
 
 #define KEY_UP 119			//W
@@ -21,9 +22,11 @@
 #define HEIGHT 20			//field size Y
 //game parameter
 #define MOMENTUM 1			//1 = keeps the player moving (0 = player stops when no key is pressed)
-#define FOOD_GEN_RATE 6		//1 = 100% every frame  e.g. 10 = 1/10 -> 10% per frame
+#define FOOD_GEN_RATE 5		//1-100 1(low rate) | 100 (high rate -> 100% per frame)
+#define FPS 5				//frames or physics - steps per second
 //etc
-#define DEBUG 1				//for debugging if-conditions
+#define DEBUG 0				//for debugging if-conditions
+#define ONE_SECOND 1000000
 //direction values
 #define IDLE 0
 #define NORTH 1				//north or up
@@ -40,46 +43,78 @@ struct position {
 	int y;
 	int direction;
 } head_pos;
-
 //location of the tail end 
 struct position tail_pos;
 
-int collision_detected = 0;
+int score;
+int collision_detected;
 
 //first declaration of methods
 void gameInit();									//libraries and player coordinates 
+void setTile(int x, int y, int item);				//sets a tile of the field to a given value (HEAD,TAIL,FOOD,EMPTY)
+int getTile(struct position* p_pos);				//get the active tile from a position struct with set x and y coordinates
 int getPlayerDirection();							//converts player input to value (0-4)
 void moveX(struct position* p_pos, int step);		//calculates new coordinates for given struct (boundary-safe)(horizontally)
 void moveY(struct position* p_pos, int step);		//same but different but still same! (vertically)
 void movePlayer(struct position* p_pos);			//parent function that coordinates getPlayerDirection, moveX, moveY
 void nextTailpiece(struct position* t_pos);		//searches surrounding tiles for a tail-object
 void moveTail(struct position* t_pos);			//handler to shorten the tail (normal movement) or keeping the position (food intake)
-void setTile(int x, int y, int item);				//sets a tile of the field to a given value (HEAD,TAIL,FOOD,EMPTY)
 void generateFood();
 void gamePhysics();									//handler for all methods mentioned above
 void renderFrame();									//prints the game
 
 int main(int argc, char const *argv[]){
-	gameInit();
-	char* user_start = getchar();
-	int timeNow = (int)time(0);					//initial timestamp
-	int timePre = timeNow - 1;						//go back 1 sec to avoid delay at start
-	while(collision_detected != TAIL){
-		while(support_readkey(1) != 0); 			//empty the input buffer if key is helt down
-		if (timeNow > timePre){						//if timeDelta is > 0 sec aka >= 1 sec bc integer value of time
-			gamePhysics();							//calculate player motion, etc.
-			renderFrame();							//renders frame
+	while(1){
+		gameInit();
+		//int timeNow = (int)time(0);					//initial timestamp
+		//int timePre = timeNow - 1;						//go back 1 sec to avoid delay at start
+		struct timeval start, end;
+		gettimeofday(&start,NULL);
+		gettimeofday(&end,NULL);
+		while(collision_detected != TAIL){
+			long unsigned int delta_us = (end.tv_sec - start.tv_sec)*1000000+(end.tv_usec - start.tv_usec);
+			
+			//if (timeNow > timePre + 1){				//if timeDelta is > 0 sec aka >= 1 sec bc integer value of time
+			if (delta_us > ONE_SECOND/FPS){				//if timeDelta is > milliseconds
+				gamePhysics();							//calculate player motion, etc.
+				renderFrame();							//renders frame
+				gettimeofday(&start,NULL);	
+				//timePre = timeNow;						
+			}
+			gettimeofday(&end,NULL);
+			//timeNow = (int)time(0);						//			
 		}
-		timePre = timeNow;							//timestamp reset
-		timeNow = (int)time(0);						//	
+		support_clear();
+		printf("\n=====================\n|||   GAME OVER   |||\n=====================\n\nYOUR FINAL SCORE => ![%d]! \n",score);			
+		printf("\n\n\n...press Q to quit, SPACEBAR to restart\n");
+		int answer;
+		do{
+			system("/bin/stty raw");						//hacky way to avoid newline key to toggle getchar()
+			answer = getchar();
+			system("/bin/stty cooked");						//hacky way to avoid newline key to toggle getchar()	
+		}while (answer != KEY_QUIT && answer != KEY_SPACE);
+		if (answer == KEY_QUIT){
+			break;
+		}
 	}
-	printf("\n=====================\n|||   GAME OVER   |||\n=====================\n");
 	return 0;
 }
 void gameInit(){
-	printf("C Snake!\nPress Return to start!\n");
+	support_clear();
+	printf("Welcome to Snake Reloaded!\n\n\t\t[W]\nUse\t[A]\t[S]\t[D]\t to move.\n\n\nPress [return] to start!\n");
+	getchar();
+	//initialize important functions
 	support_init();
 	srand(time(NULL));
+	//set everything to 0
+	score = 0;
+	collision_detected = BLANK;
+	int i,j;
+	for (i = 0; i < WIDTH; i++){
+		for (j = 0; j < HEIGHT; j++){
+			setTile(i,j,BLANK);
+		}	
+	}
 	//player_init
 	setTile(WIDTH/2,HEIGHT/2,HEAD);
 	head_pos.x=WIDTH/2;
@@ -90,10 +125,26 @@ void gameInit(){
 	tail_pos.x = WIDTH/2;
 	tail_pos.y = HEIGHT/2 + 2;
 }
+void setTile(int x, int y, int item){
+	field[x][y] = item;
+}
+int getTile(struct position* p_pos){
+	return field[p_pos->x][p_pos->y];
+}
 int getPlayerDirection(){
+	int last_key;
+	int current_key = 0;
+	do{
+		last_key = current_key;
+		current_key = support_readkey(1);
+	}while(current_key != 0); 					//empty the input buffer if key is helt down and save the last key that is not 0
+	
+	int input;
 	//system("/bin/stty raw");						//hacky way to avoid newline key to toggle getchar()
-	int input = support_readkey(500);				//Read char from input, with max 500 ms delay	
+	//input = support_readkey(250);				//Read char from input, with max 500 ms delay	
 	//system("/bin/stty cooked");					//disable hackysack
+	input = last_key;
+	
 	char* direction_str;							//for debugging purposes
 	int direction;									//return variable
 	switch(input){
@@ -117,12 +168,16 @@ int getPlayerDirection(){
 			direction_str = "right";
 			direction = EAST;
 			break;
+		case KEY_QUIT:
+			direction_str = "quit";
+			direction = -1;
+			break;
 		default:
 			direction_str = "wrong key";
 			direction = IDLE;
 			break;
 	}
-	if (DEBUG){printf("KEY:[%d] %s (%d)\n",input,direction_str,direction);}	//DEBUGGING
+	if (DEBUG>=2){printf("KEY:[%d] %s (%d)\n",input,direction_str,direction);}	//DEBUGGING
 	return direction;	
 }
 void moveX(struct position* p_pos, int step){
@@ -157,45 +212,66 @@ void moveY(struct position* p_pos, int step){
 }
 void movePlayer(struct position* p_pos){					
 	int player_direction = getPlayerDirection();			//return 0-4 (idle, N,E,S,W)
-	if (!MOMENTUM || player_direction){						//if not idle (to maintain momentum)
-		p_pos->direction = player_direction;
-	}
-	setTile(p_pos->x,p_pos->y,TAIL);						//set current HEAD position to TAIL rendering	
-	switch(p_pos->direction){
-		case NORTH:
-			moveY(p_pos,-1);
-			break;
-		case EAST:
-			moveX(p_pos,1);
-			break;
-		case SOUTH:
-			moveY(p_pos,1);
-			break;
-		case WEST:
-			moveX(p_pos,-1);
-			break;
-		default:
-			break;
-	}
-
-	collision_detected = field[p_pos->x][p_pos->y];			//safe tile that is about to be overwritten as collision object
 	
-	setTile(p_pos->x,p_pos->y,HEAD);	
-	if (DEBUG){printf("Player position [%d][%d]\nCollision detector: %d\n",p_pos->x,p_pos->y,collision_detected);}		//DEBUGGING
+	//if player hit 'q' to quit the game
+	if (player_direction == -1){
+		collision_detected = TAIL; //forces game over screen
+	}else{
+		if (!MOMENTUM || player_direction){						//if not idle (to maintain momentum)
+			
+			//allow eighter same direction as before or turn left/right, not 180deg turns -> NORTH + SOUTH and EAST + WEST are even numbers
+			if (player_direction == p_pos->direction || (player_direction + p_pos->direction)%2 == 1){
+				p_pos->direction = player_direction;
+			}	
+		}
+		setTile(p_pos->x,p_pos->y,TAIL);						//set current HEAD position to TAIL rendering	
+		switch(p_pos->direction){
+			case NORTH:
+				moveY(p_pos,-1);
+				break;
+			case EAST:
+				moveX(p_pos,1);
+				break;
+			case SOUTH:
+				moveY(p_pos,1);
+				break;
+			case WEST:
+				moveX(p_pos,-1);
+				break;
+			default:
+				break;
+		}
+
+		collision_detected = field[p_pos->x][p_pos->y];			//safe tile that is about to be overwritten as collision object
+		if (collision_detected == FOOD){score++;}				//score updater if HEAD hit FOOD
+		
+		setTile(p_pos->x,p_pos->y,HEAD);	
+		if (DEBUG){
+			printf("Player position [%d][%d]\n",p_pos->x,p_pos->y);
+			printf("Collision detector: %d\n",collision_detected);
+		}		//DEBUGGING
+		
+	}
 }
 void nextTailpiece(struct position* t_pos){
-	if (field[t_pos->x +1][t_pos->y] == TAIL){
-		t_pos->x = t_pos->x + 1;
-	}else{
-		if (field[t_pos->x -1][t_pos->y] == TAIL){
-			t_pos->x = t_pos->x - 1;
-		}else{
-			if (field[t_pos->x][t_pos->y +1] == TAIL){
-				t_pos->y = t_pos->y + 1;
-			}else{
-				if (field[t_pos->x][t_pos->y -1] == TAIL){
-					t_pos->y = t_pos->y - 1;
-				}
+	struct position temp;
+	temp.x = t_pos->x;
+	temp.y = t_pos->y;
+	
+	moveX(&temp,1);
+	if (getTile(&temp) == TAIL){t_pos->x = temp.x;}
+	else{
+		moveX(&temp,-1);
+		moveX(&temp,-1);
+		if (getTile(&temp) == TAIL){t_pos->x = temp.x;}
+		else{
+			moveX(&temp,1);
+			moveY(&temp,1);
+			if (getTile(&temp) == TAIL){t_pos->y = temp.y;}
+			else{
+				moveY(&temp,-1);
+				moveY(&temp,-1);
+				if (getTile(&temp) == TAIL){t_pos->y = temp.y;}
 			}
 		}
 	}
@@ -206,11 +282,8 @@ void moveTail(struct position* t_pos){
 		nextTailpiece(t_pos);
 	}
 }
-void setTile(int x, int y, int item){
-	field[x][y] = item;
-}
 void generateFood(){
-	int t = rand() % (FOOD_GEN_RATE + 1 - 1) + 1;
+	int t = rand() % ((100 / FOOD_GEN_RATE) + 1 - 1) + 1;
 
 	if(t == 1){
 		while(1){
@@ -232,20 +305,35 @@ void gamePhysics(){
 	generateFood();
 }
 void renderFrame(){
+	support_clear();
+	printf("Score: %d\n\n",score);
 	int x,y = 0;
-	for (y = 0; y<HEIGHT; y++){
-		printf("H");
+	for (y = 0; y<HEIGHT; y++){	
 		for (x=0; x<WIDTH; x++) {
-			if(y==0 || y==HEIGHT-1){
-				printf("W");
+			if(x==0 || x==WIDTH-1){
+				printf("H");
+				if(x==WIDTH-1){printf("\n");}
 			}else{
-				if (field[x][y] == BLANK){
-					printf(" ");
+				if(y==0 || y==HEIGHT-1){
+					printf("W");
 				}else{
-					printf("%d",field[x][y]);
+					switch(field[x][y]){
+					case BLANK:
+						printf(" ");
+						break;
+					case HEAD:
+						printf("Ω");
+						break;
+					case TAIL:
+						printf("¥");
+						break;
+					case FOOD:
+						printf("€");
+						break;
+					}
 				}
+
 			}
 		}
-		printf("H\n");
 	}
 }
