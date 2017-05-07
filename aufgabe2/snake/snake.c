@@ -115,7 +115,7 @@ void moveX(struct position* p_pos, int step){
 		p_pos->x = (p_pos->x + 1) % WIDTH;
 	}else{
 		if (p_pos->x - 1 < 0){
-			p_pos->x = HEIGHT;
+			p_pos->x = WIDTH;
 		}else{
 			p_pos->x--;
 		}
