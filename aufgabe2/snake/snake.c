@@ -8,11 +8,11 @@
 #define KEY_DOWN 115		//S
 #define KEY_RIGHT 100		//D
 
-//field filler
+//item list
 #define BLANK 0				//empty field
 #define HEAD 1				//snake head symbol
 #define TAIL 2				//snake tail symbol
-#define FOOD 9				//food item symbol
+#define FOOD 3				//food item symbol
 //field parameter
 #define WIDTH 60			//field size X
 #define HEIGHT 20			//field size Y
@@ -48,7 +48,8 @@ void moveY(struct position* p_pos, int step);		//same but different but still sa
 void movePlayer();									//parent function that coordinates getPlayerDirection, moveX, moveY
 void nextTailpiece();								//searches surrounding tiles for a tail-object
 void moveTail();									//handler to shorten the tail (normal movement) or keeping the position (food intake)
-void createItem();									//sets a tile of the field to a given value (HEAD,TAIL,FOOD,EMPTY)
+void setTile(int x, int y, int item);				//sets a tile of the field to a given value (HEAD,TAIL,FOOD,EMPTY)
+void generateFood();
 void gamePhysics();									//handler for all methods mentioned above
 void renderFrame();									//prints the game
 
@@ -137,7 +138,7 @@ void movePlayer(struct position* p_pos){
 	if (!MOMENTUM || player_direction){						//if not idle (to maintain momentum)
 		p_pos->direction = player_direction;
 	}
-	field[p_pos->x][p_pos->y] = TAIL;						//set current HEAD position to TAIL rendering	
+	setTile(p_pos->x,p_pos->y,TAIL);							//set current HEAD position to TAIL rendering	
 	switch(p_pos->direction){
 		case NORTH:
 			moveY(p_pos,-1);
@@ -154,7 +155,7 @@ void movePlayer(struct position* p_pos){
 		default:
 			break;
 	}
-	field[p_pos->x][p_pos->y] = HEAD;	
+	setTile(p_pos->x,p_pos->y,HEAD);	
 	if (DEBUG){printf("Player position [%d][%d]\n",p_pos->x,p_pos->y);}		//DEBUGGING
 }
 void nextTailpiece(){
@@ -163,15 +164,17 @@ void nextTailpiece(){
 void moveTail(){
 	
 }
-void createItem(){
+void setTile(int x, int y, int item){
+	field[x][y] = item;
+}
+void generateFood(){
 	
 }
 void gamePhysics(){
 	struct position* p_pos = &pos;
-	//printf("pos pointer: %p | X,Y = [%d,%d]\n",p_pos,p_pos->x,p_pos->y);
 	movePlayer(p_pos);
 	moveTail();
-	createItem();
+	generateFood();
 }
 void renderFrame(){
 	int x,y = 0;
