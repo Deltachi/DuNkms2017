@@ -22,7 +22,7 @@
 #define HEIGHT 20			//field size Y
 //game parameter
 #define MOMENTUM 1			//1 = keeps the player moving (0 = player stops when no key is pressed)
-#define FOOD_GEN_RATE 5		//1-100 1(low rate) | 100 (high rate -> 100% per frame)
+#define FOOD_GEN_RATE 8		//1-100 1(low rate) | 100 (high rate -> 100% per frame)
 #define FPS 5				//frames or physics - steps per second
 //etc
 #define DEBUG 0				//for debugging if-conditions
