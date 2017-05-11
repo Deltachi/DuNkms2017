@@ -1,5 +1,5 @@
 CFLAGS=-std=c11 -Wall -g
-CC=clang
+#CC=clang
 
 all: snake
 
