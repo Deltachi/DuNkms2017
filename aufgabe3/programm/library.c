@@ -14,13 +14,28 @@ int main (){
 	unsigned char target[HASH_LENGTH] = {0x1c, 0x01, 0x43, 0xc6, 0xac, 0x75, 0x05, 0xc8, 0x86, 0x6d, 0x10, 0x27, 0x0a, 0x48, 0x0d, 0xec}; // "Les Miserables" - to be used for les_miserables_preface.txt
 	time_t start = time(NULL);
 	FILE* f;
+	char c;
 
-	f = fopen("les_miserables.txt", "r");
+	f = fopen("les_miserables_preface.txt", "r");
 	if(f == NULL){
 		return 1;
 	}
-	const char* delim = " .,;-:0123456789?!\"*+()|&[]#$/%%'";
+	while((c=fgetc(f))!=EOF){
+	        printf("%c",c);
+				}
+	fclose(f);
 
+	//char string[] = f;
+	const char* delim = " .,;-:0123456789?!\"*+()|&[]#$/%%'";
+	/**char *ptr;
+
+	ptr = strtok(string, delim);
+
+	while(ptr != NULL) {
+		printf("Abschnitt gefunden: %s\n", ptr);
+		// naechsten Abschnitt erstellen
+	 	ptr = strtok(NULL, delim);
+	}**/
 	/*
 	 * - find all unique words from the book
 	 * - create the hashes of all two-string combinations
