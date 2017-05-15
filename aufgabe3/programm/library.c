@@ -20,13 +20,28 @@ int main (){
 	if(f == NULL){
 		return 1;
 	}
-	while((c=fgetc(f))!=EOF){
+	/**while((c=fgetc(f))!=EOF){
 	        printf("%c",c);
-				}
-	fclose(f);
+				}**/
 
-	//char string[] = f;
-	const char* delim = " .,;-:0123456789?!\"*+()|&[]#$/%%'";
+	const int bsize=4096;
+	char Buffer[bsize];
+	char *Buffer_Ptr=Buffer;
+  const char* delim = "a";
+
+	while( !feof(f) )
+	{
+					Buffer_Ptr=fgets(Buffer_Ptr,bsize,f);
+					if( Buffer_Ptr != NULL )
+					{
+									printf("%s",Buffer_Ptr);   // would printing the complete string read from input file
+									char *Token=NULL; /* Token delimited by ";" from Buffer_Ptr */
+									int Token_Cnt=0; /* Token Counter */
+									Token=strtok(Buffer_Ptr,delim);
+									printf("%-2d %s\n",Token_Cnt++,Token);
+								}
+			}
+
 	/**char *ptr;
 
 	ptr = strtok(string, delim);
