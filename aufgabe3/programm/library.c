@@ -27,7 +27,7 @@ int main (){
 	const int bsize=4096;
 	char Buffer[bsize];
 	char *Buffer_Ptr=Buffer;
-  const char* delim = " ";
+	const char* delim = " ";
 
 	while( !feof(f) )
 	{
@@ -38,7 +38,12 @@ int main (){
 									char *Token=NULL; /* Token delimited by ";" from Buffer_Ptr */
 									int Token_Cnt=0; /* Token Counter */
 									Token=strtok(Buffer_Ptr,delim);
-									printf("%-2d %s\n",Token_Cnt++,Token);
+									while( Token != NULL){
+										printf("%-2d %s",Token_Cnt++,Token);
+										Token=strtok(NULL,delim);
+									}
+									printf("\n");
+									
 								}
 			}
 
