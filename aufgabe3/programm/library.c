@@ -39,7 +39,7 @@ int main (){
 									int Token_Cnt=0; /* Token Counter */
 									Token=strtok(Buffer_Ptr,delim);
 									while( Token != NULL){
-										printf("%-2d %s",Token_Cnt++,Token);
+										printf("%-2d %s  ",Token_Cnt++,Token);
 										Token=strtok(NULL,delim);
 									}
 									printf("\n");
