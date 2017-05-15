@@ -27,7 +27,7 @@ int main (){
 	const int bsize=4096;
 	char Buffer[bsize];
 	char *Buffer_Ptr=Buffer;
-  const char* delim = "a";
+  const char* delim = " ";
 
 	while( !feof(f) )
 	{
