@@ -1,0 +1,16 @@
+CFLAGS=-std=c11 -Wall -pedantic -g -fopenmp
+LDFLAGS=-fopenmp
+CC=gcc
+
+all: library2
+
+.PHONY: all clean
+
+library: md5.o library2.o
+	$(CC) $(LDFLAGS) -o library2 md5.o library2.o
+
+library.o: library2.c md5.h
+
+clean:
+	rm -f library2
+	rm -f library2.o library2.o md5.o
