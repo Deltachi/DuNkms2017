@@ -88,13 +88,13 @@ void delimWords(const char *file, const char *delimeter){
 	char *ptr;
 	//fp = fopen("les_miserables_preface", "r");
  while(feof(fp)==0){
-		fscanf(fp, "%s", buffer);
+		fscanf(fp, "%s", buffer); //end at blank tab or new line
 		ptr=strtok(buffer, delimeter);
 
 		while(ptr !=NULL){
 			fputs(ptr,wr);
 			fputs("\n",wr);
-			ptr=strtok(NULL,delimeter);
+			ptr=strtok(NULL,delimeter); //iterate to next part
   	}
   }
 	fclose(fp);
@@ -102,15 +102,18 @@ void delimWords(const char *file, const char *delimeter){
 	searchWords("Words.txt");
 }
 int compare(unsigned char *a, unsigned char *b, int size) {
-
+      printf("Start comparison\n---\n");
 	    while(size-- > 0) {
-
-	        if ( *a != *b ) { return (*a < *b ) ? -1 : 1; }
+          printf("%x ? %x  |  ", *a,*b);
+	        if ( *a != *b ) {
+            printf("hash does not match. discontinue comparison..\n");
+            return (*a < *b ) ? -1 : 1;
+          }
 
 	        a++; b++;
 
 	    }
-
+      printf("\n---\n");
 	    return 0; //equal
 
 	}
@@ -125,6 +128,7 @@ void *hashIt(void *arguments){
 	char word1[255];
 	char word2[255];
 	char buffer[1024];
+  //memset(buffer, 0, 1024);  //initialize with 0
 	unsigned char hash[HASH_LENGTH] = {0};
 	while(feof(fp)==0 && wordFound == 0 && stop == 0){ //check if other thread did not work on the same word
 		fgets(word1, 255, (FILE*)fp);
@@ -150,13 +154,23 @@ void *hashIt(void *arguments){
 			MD5_Final(hash, &md5_ctx);
     //  for(int i=0;i<HASH_LENGTH;i++)
       //  printf("%x\n",hash[i]);
+/**
+      printf("next combination:");
+      int z;
+      for (z = 0; z<sizeof(buffer);z++){
+        printf("%x", buffer[z]);
+      }
+      printf("\n");
+      **/
 
+
+      //debug print hexa values
       int x,y;
-      for (x = 1; x<sizeof(hash);x++){
+      for (x = 0; x<sizeof(hash);x++){
         printf("%x", hash[x]);
       }
       printf("\n");
-      for (y = 1; y<sizeof(target);y++){
+      for (y = 0; y<sizeof(target);y++){
         printf("%x", target[y]);
       }
       printf("\n");
@@ -177,7 +191,8 @@ return NULL;
 
 int main (){
 
-	time_t start = time(NULL);
+	time_t start = time(NULL); //starte timer
+  printf("Start.\n");
 	//FILE* f;
 
 	//f = fopen("/home/sven/Dokumente/Aufgabe 3/les_miserables.txt", "r");
@@ -190,17 +205,18 @@ int main (){
     temp = &target[i];
     target_dec = strtol(temp,NULL, 0);
   }*/
-	const char* delim = " .,;-:0123456789?!\"*+()|&[]#$/%%'";
+	const char* delim = " .,;-:0123456789?!\"*+()|&[]#$/%%'"; //delemiter chars
 	//Find all unique Words in les_miserables.txt
-  delimWords("les_miserables_preface.txt",delim);
+  delimWords("les_miserables_extrashort.txt",delim); //delim Words and filter unique words
  //count all Lines/Words of the Outputfile from delim Words
   int countLines = countlines("Words_unique.txt");
  // Split up the files so each thread can work on one File
   makeFile("Words_unique.txt","Thread1.txt",countLines/2, 1);
   makeFile("Words_unique.txt","Thread2.txt",countLines, countLines/2);
-  system("tac Words_unique.txt > Words_reverse.txt");
+  system("tac Words_unique.txt > Words_reverse.txt"); //same as cat but reversed
   makeFile("Words_reverse.txt","Thread3.txt", countLines/2, 1);
   makeFile("Words_reverse.txt","Thread4.txt", countLines, countLines/2);
+  //unique_words split in 4 parts, that work simultaniously
 
 
   /*
