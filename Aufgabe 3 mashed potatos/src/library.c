@@ -102,18 +102,18 @@ void delimWords(const char *file, const char *delimeter){
 	searchWords("Words.txt");
 }
 int compare(unsigned char *a, unsigned char *b, int size) {
-      printf("Start comparison\n---\n");
+      //printf("Start comparison\n---\n");
 	    while(size-- > 0) {
-          printf("%x ? %x  |  ", *a,*b);
+          //printf("%x ? %x  |  ", *a,*b);
 	        if ( *a != *b ) {
-            printf("hash does not match. discontinue comparison..\n");
+            printf("no match\n");
             return (*a < *b ) ? -1 : 1;
           }
 
 	        a++; b++;
 
 	    }
-      printf("\n---\n");
+      //printf("\n---\n");
 	    return 0; //equal
 
 	}
@@ -154,26 +154,21 @@ void *hashIt(void *arguments){
 			MD5_Final(hash, &md5_ctx);
     //  for(int i=0;i<HASH_LENGTH;i++)
       //  printf("%x\n",hash[i]);
-/**
-      printf("next combination:");
-      int z;
-      for (z = 0; z<sizeof(buffer);z++){
-        printf("%x", buffer[z]);
-      }
-      printf("\n");
-      **/
-
+        //printf("->%s\n",buffer);
 
       //debug print hexa values
+    ///*
+        printf("hash[T:%d]",thread);
       int x,y;
       for (x = 0; x<sizeof(hash);x++){
         printf("%x", hash[x]);
       }
-      printf("\n");
+      printf("\n key[T:%d]",thread);
       for (y = 0; y<sizeof(target);y++){
         printf("%x", target[y]);
       }
       printf("\n");
+    //*/
 
 		 	if(compare(hash, target, HASH_LENGTH) == 0){
 				wordFound=1;
@@ -185,7 +180,6 @@ void *hashIt(void *arguments){
 
  }
  fclose(fp);
-
 return NULL;
 }
 

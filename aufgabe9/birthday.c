@@ -22,7 +22,7 @@ int generateKey(char* date)
     char* tok;
     for (tok = strtok(date, "/"); tok && *tok; tok = strtok(NULL, "/\n"))
     {
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 1; i++) {
           key += ((int)tok[i] - '0') * count;
           //printf("%c * %d = %d\n", tok[i],count, key);
           count = count/10;
@@ -99,7 +99,11 @@ int main()
         printf("Ergebnisse für k = %d \tund \t%d Durchläufe: \t%d Treffer -> \t%d%% \t", i, iterations, ergebnisse[i], percent);
         for (int perc = 0; perc < percent; perc++)
         {
-          printf("\u2500\u2501");
+            if (perc%2 == 0){
+                printf("\u2500");
+            }else{
+                printf("\u2501");
+            }
         }
         printf("\n");
     }

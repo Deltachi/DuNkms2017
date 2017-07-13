@@ -74,7 +74,7 @@ void *forkDisposer(void *i){
   // Typecast des void arguments zurück in ein int
   struct arg_struct *args = (struct arg_struct *)i;
   int thread = args->thread;
-  sem_wait(&p);
+  //sem_wait(&p);
   getFork(thread);
   return 0;
 
